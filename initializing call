@@ -1,0 +1,2 @@
+new = customerPortal()
+new.getCustomersNearby(53.339428,-6.257664,100,'C:\\Users\\Public\\Customers _Assignment.txt','C:\\Users\\Public\\')
