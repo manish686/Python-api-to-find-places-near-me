@@ -1,0 +1,60 @@
+import math
+import json
+import os
+
+
+class customerPortal(object):
+    def __init__(self):
+        pass
+    class _customer_details(object):
+        def __init__(self,name,user_id,latitiude,longitude,distanceFromReference):
+            self.name = name
+            self.user_id = user_id
+            self.latitude = latitiude
+            self.longitude = longitude
+            self.distanceFromReference = distanceFromReference
+    def _degtorad(self,deg):
+        return deg*math.pi/180
+
+    def _getDistanceBetweenTwoPoints(self,lat1,long1,lat2,long2):
+        radius_of_earth = 6371
+        difference_lat = self._degtorad(lat2-lat1)
+        difference_long = self._degtorad(long2-long1)
+        #useing haversrine algorithm
+        delta_attitude = math.pow(math.sin(difference_lat/2),2) + math.pow(math.sin(difference_long),2) * math.cos(self._degtorad(lat1))*math.cos(self._degtorad(lat2))
+        delta_theeta = 2 * math.atan2(math.sqrt(delta_attitude),math.sqrt(1-delta_attitude))
+        distance_kms = radius_of_earth * delta_theeta
+        return distance_kms
+
+    def getCustomersNearby(self,reference_lat,reference_long,refernce_distance_km,input_file_location,output_file_directory):
+        reference_lat = 53.339428
+        reference_long = -6.257664
+        refernce_distance_km = 100
+        input_file_location ='C:\\Users\\Public\\Customers _Assignment.txt'
+        output_file_directory = 'C:\\Users\\Public\\'
+        customer_list = []
+        with open(input_file_location) as json_file:
+            for line in json_file:
+                line_data = json.loads(line)
+                distanceFromReference = self._getDistanceBetweenTwoPoints(reference_lat,reference_long,float(line_data['latitude']),float(line_data['longitude']))
+                if (distanceFromReference <= refernce_distance_km):
+                    customer = self._customer_details(line_data['name'],line_data['user_id'],line_data['latitude'],line_data['longitude'],distanceFromReference)
+                    #temp = {line_data['user_id']:customer}
+                    #customer_list.append(temp)
+                    customer_list.append(customer)
+
+        output_file_path = output_file_directory + 'biz2credit_results.txt'
+        if (os.path.exists(output_file_path)):
+            os.remove(output_file_path)
+        output_data={}
+        for customer in customer_list:
+            output_data[customer.user_id] = customer.name
+        output_sorted_keys = sorted(output_data)
+        output_print_data = []
+        for key in output_sorted_keys:
+            temp = {}
+            temp["user_id"]= key
+            temp["name"] = output_data[key]
+            output_print_data.append(temp)
+        with open(output_file_path,"w+") as outfile:
+            json.dump(output_print_data,outfile)
